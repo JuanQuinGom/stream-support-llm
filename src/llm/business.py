@@ -1,5 +1,6 @@
 import os
 
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from pydantic.v1 import BaseModel
 
@@ -11,22 +12,25 @@ You have to be friendly or treat the viewer and answer the questions or messages
 class ViewerAnswer(BaseModel):
     message: str
 
+prompt_template = ChatPromptTemplate.from_messages([
+    ("system", os.getenv("CUSTOM PROMPT", INITIAL_PROMPT)),
+    ("user", "{user_input}"),
+])
+
 llm = ChatOllama(
     base_url=os.getenv("LLM_BASE_URL"),
     model="llama2",
     temperature=0.8,
     format="json",
+
 )
 structured_llm = llm.with_structured_output(ViewerAnswer)
 
 async def execute_prompt(prompt: str) -> str:
-    custom_prompt = os.getenv("CUSTOM PROMPT", None)
-    system_message = custom_prompt if custom_prompt else INITIAL_PROMPT
-    messages = [
-        ("system", system_message),
-        ("message", prompt),
-    ]
+    structured_chain = prompt_template | structured_llm
 
-    response = await structured_llm.ainvoke(messages)
+    response = await structured_chain.ainvoke({
+        "user_input": prompt
+    })
 
     return response.message
