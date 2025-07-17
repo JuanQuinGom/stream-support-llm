@@ -9,9 +9,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "python-dotenv",
-    "langchain-ollama"
+    "langchain-ollama",
+    "langchain",
 ]
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
